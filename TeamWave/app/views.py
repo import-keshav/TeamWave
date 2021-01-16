@@ -1,10 +1,10 @@
-from datetime import datetime
+from datetime import datetime, timezone
 import json
 import requests
 
 from django.core.cache import cache
 
-from rest_framework import generics, status, filters
+from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.renderers import JSONRenderer
@@ -100,12 +100,12 @@ class Search(APIView):
 
         query_set = models.User.objects.filter(email=email)
         if len(query_set) == 0:
-            usr_obj = models.User(email=email, last_time_search=datetime.now(), num_of_query=1)
+            usr_obj = models.User(email=email, last_time_search=datetime.now(timezone.utc), num_of_query=1)
             usr_obj.save()
             return True
 
         usr_obj = query_set[0]
-        delta_time = datetime.now() - usr_obj.last_time_search
+        delta_time = datetime.now(timezone.utc) - usr_obj.last_time_search
 
         if (delta_time.seconds <=60 and usr_obj.num_of_query >=5) or (
             delta_time.days == 0 and usr_obj.num_of_query >=100):
